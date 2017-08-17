@@ -39,7 +39,7 @@ final public class PopupDialogContainerView: UIView {
     }
 
     /// The corner radius of the popup view
-    public dynamic var cornerRadius: Float {
+    public dynamic var viewCornerRadius: Float {
         get { return Float(shadowContainer.layer.cornerRadius) }
         set {
             let radius = CGFloat(newValue)
@@ -55,7 +55,7 @@ final public class PopupDialogContainerView: UIView {
     }
 
     /// The shadow color
-    public dynamic var shadowColor: UIColor? {
+    public dynamic var viewShadowColor: UIColor? {
         get {
             guard let color = shadowContainer.layer.shadowColor else {
                 return nil
