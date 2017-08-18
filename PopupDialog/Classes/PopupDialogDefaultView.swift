@@ -26,6 +26,55 @@
 import Foundation
 import UIKit
 
+extension UIView {
+	func borders(for edges:[UIRectEdge], width:CGFloat = 1, padding:CGFloat = 0, color: UIColor = .black) {
+		
+		if edges.contains(.all) {
+			layer.borderWidth = width
+			layer.borderColor = color.cgColor
+		} else {
+			let allSpecificBorders:[UIRectEdge] = [.top, .bottom, .left, .right]
+			
+			for edge in allSpecificBorders {
+				if let v = viewWithTag(Int(edge.rawValue)) {
+					v.removeFromSuperview()
+				}
+				
+				if edges.contains(edge) {
+					let v = UIView()
+					v.tag = Int(edge.rawValue)
+					v.backgroundColor = color
+					v.translatesAutoresizingMaskIntoConstraints = false
+					addSubview(v)
+					
+					var horizontalVisualFormat = "H:"
+					var verticalVisualFormat = "V:"
+					
+					switch edge {
+					case UIRectEdge.bottom:
+						horizontalVisualFormat += "|-(0)-[v]-(0)-|"
+						verticalVisualFormat += "[v(\(width))]-(\(padding))-|"
+					case UIRectEdge.top:
+						horizontalVisualFormat += "|-(0)-[v]-(0)-|"
+						verticalVisualFormat += "|-(\(padding))-[v(\(width))]"
+					case UIRectEdge.left:
+						horizontalVisualFormat += "|-(\(padding))-[v(\(width))]"
+						verticalVisualFormat += "|-(0)-[v]-(0)-|"
+					case UIRectEdge.right:
+						horizontalVisualFormat += "[v(\(width))]-(\(padding))-|"
+						verticalVisualFormat += "|-(0)-[v]-(0)-|"
+					default:
+						break
+					}
+					
+					self.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: horizontalVisualFormat, options: .directionLeadingToTrailing, metrics: nil, views: ["v": v]))
+					self.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: verticalVisualFormat, options: .directionLeadingToTrailing, metrics: nil, views: ["v": v]))
+				}
+			}
+		}
+	}
+}
+
 /// The main view of the popup dialog
 final public class PopupDialogDefaultView: UIView {
 
@@ -37,12 +86,26 @@ final public class PopupDialogDefaultView: UIView {
         set { titleLabel.font = newValue }
     }
 
+	internal var titlePadding: CGFloat = 12
+	
     /// The color of the title label
     public dynamic var titleColor: UIColor? {
         get { return titleLabel.textColor }
-        set { titleLabel.textColor = newValue }
+		set {
+			titleLabel.textColor = newValue
+			titlePadding = 12
+		}
     }
 
+	/// The color of the title label
+	public dynamic var titleUnderlineColor: UIColor? {
+		get { return titleLabel.textColor }
+		set {
+			titleLabel.borders(for: [.bottom], width: 1, padding: -8, color: newValue ?? UIColor.black)
+			titlePadding = 15
+		}
+	}
+	
     /// The text alignment of the title label
     public dynamic var titleTextAlignment: NSTextAlignment {
         get { return titleLabel.textAlignment }
@@ -131,9 +194,9 @@ final public class PopupDialogDefaultView: UIView {
         var constraints = [NSLayoutConstraint]()
 
         constraints += NSLayoutConstraint.constraints(withVisualFormat: "H:|[imageView]|", options: [], metrics: nil, views: views)
-        constraints += NSLayoutConstraint.constraints(withVisualFormat: "H:|-(==20@900)-[titleLabel]-(==20@900)-|", options: [], metrics: nil, views: views)
-        constraints += NSLayoutConstraint.constraints(withVisualFormat: "H:|-(==20@900)-[messageLabel]-(==20@900)-|", options: [], metrics: nil, views: views)
-        constraints += NSLayoutConstraint.constraints(withVisualFormat: "V:|[imageView]-(==30@900)-[titleLabel]-(==8@900)-[messageLabel]-(==30@900)-|", options: [], metrics: nil, views: views)
+        constraints += NSLayoutConstraint.constraints(withVisualFormat: "H:|-(==0@900)-[titleLabel]-(==0@900)-|", options: [], metrics: nil, views: views)
+        constraints += NSLayoutConstraint.constraints(withVisualFormat: "H:|-(==10@900)-[messageLabel]-(==10@900)-|", options: [], metrics: nil, views: views)
+        constraints += NSLayoutConstraint.constraints(withVisualFormat: "V:|[imageView]-(==10@900)-[titleLabel]-(==\(titlePadding)@900)-[messageLabel]-(==10@900)-|", options: [], metrics: nil, views: views)
         
         // ImageView height constraint
         imageHeightConstraint = NSLayoutConstraint(item: imageView, attribute: .height, relatedBy: .equal, toItem: imageView, attribute: .height, multiplier: 0, constant: 0)
